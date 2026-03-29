@@ -603,7 +603,68 @@ canvas.addEventListener('pointermove', (e) => {
 - `return false` でスクロール抑制が簡潔に書ける
 - Pointer Events を直接使う方式（方針C）ほどのボイラープレートが不要
 
-### 6.2 完全なイベント処理コード例
+### 6.2 プリセットボタンのタッチ/クリック処理
+
+プロットエリア外にプリセットボタン（通常・女声・可愛い声・アニメ声）がある場合、
+`touchStarted()` / `mousePressed()` 内で **ボタン判定を先に行い、ボタンが
+タッチされた場合は音声トリガーをスキップする** 必要がある。
+
+処理の優先順位:
+
+1. `getClickedButton()` でタッチ/クリック座標がボタン上かを判定
+2. ボタン上 → `applyPreset()` を呼び、`return false`（タッチ）/ `return`（マウス）で **音声を開始しない**
+3. ボタン外 → `isInsidePlotArea()` を判定し、プロットエリア内なら `startSound()` を呼ぶ
+
+```javascript
+// --- ボタン判定ユーティリティ ---
+function getClickedButton(mx, my) {
+  if (my < BTN_Y || my > BTN_Y + BTN_H) return -1;
+  // 各ボタンの x 範囲をチェック
+  for (let i = 0; i < PRESETS.length; i++) {
+    let x = startX + i * (BTN_W + BTN_GAP);
+    if (mx >= x && mx <= x + BTN_W) return i;
+  }
+  return -1;
+}
+
+// --- マウスイベント ---
+function mousePressed() {
+  // (1) まずボタン判定
+  let btn = getClickedButton(mouseX, mouseY);
+  if (btn >= 0) {
+    applyPreset(btn);
+    return;  // 音声トリガーしない
+  }
+  // (2) プロットエリア判定
+  if (isInsidePlotArea(mouseX, mouseY)) {
+    startSound();
+  }
+}
+
+// --- タッチイベント ---
+function touchStarted() {
+  if (touches.length > 0) {
+    // (1) まずボタン判定
+    let btn = getClickedButton(touches[0].x, touches[0].y);
+    if (btn >= 0) {
+      applyPreset(btn);
+      return false;  // 音声トリガーしない＋デフォルト動作抑制
+    }
+    // (2) プロットエリア判定
+    if (isInsidePlotArea(touches[0].x, touches[0].y)) {
+      startSound();
+    }
+  }
+  return false;
+}
+```
+
+この方式により、タッチデバイスでプリセットボタンをタップしても
+意図しない音声再生が発生しない。`mousePressed()` と `touchStarted()` の
+両方で同じ優先順位パターン（ボタン → プロットエリア）を適用することで、
+マウスとタッチの動作を一貫させている。
+
+### 6.3 完全なイベント処理コード例
 
 ```javascript
 // ===== sketch.js — イベント処理部分 =====
@@ -636,6 +697,11 @@ function isInsidePlotArea(px, py) {
 
 // --- マウスイベント（PCブラウザ） ---
 function mousePressed() {
+  let btn = getClickedButton(mouseX, mouseY);
+  if (btn >= 0) {
+    applyPreset(btn);
+    return;
+  }
   if (isInsidePlotArea(mouseX, mouseY)) {
     startSound();
     isPlaying = true;
@@ -652,8 +718,12 @@ function mouseReleased() {
 // --- タッチイベント（モバイル） ---
 function touchStarted() {
   if (touches.length > 0) {
-    let t = touches[0];
-    if (isInsidePlotArea(t.x, t.y)) {
+    let btn = getClickedButton(touches[0].x, touches[0].y);
+    if (btn >= 0) {
+      applyPreset(btn);
+      return false; // 音声トリガーしない＋デフォルト動作抑制
+    }
+    if (isInsidePlotArea(touches[0].x, touches[0].y)) {
       startSound();
       isPlaying = true;
     }
@@ -719,7 +789,7 @@ function updateFormants(px, py) {
 }
 ```
 
-### 6.3 CSS
+### 6.4 CSS
 
 ```css
 /* style.css */
@@ -735,12 +805,13 @@ canvas {
 }
 ```
 
-### 6.4 チェックリスト
+### 6.5 チェックリスト
 
 | 項目 | 対応 |
 |------|------|
 | マウスクリック/ドラッグ | mousePressed / mouseReleased / draw() 内 mouseIsPressed |
 | タッチ開始/移動/終了 | touchStarted / touchMoved / touchEnded |
+| プリセットボタンのタッチ/クリック | `getClickedButton()` → `applyPreset()` を音声トリガーより先に判定 |
 | 二重発火防止 | p5.js がタッチ関数定義時に自動抑制 |
 | スクロール/ズーム抑制 | CSS `touch-action: none` + `return false` |
 | AudioContext resume | `userStartAudio()` + `getAudioContext().resume()` |

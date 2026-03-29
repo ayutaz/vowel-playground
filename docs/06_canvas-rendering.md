@@ -35,7 +35,7 @@ textFont('"Noto Sans", "Lucida Grande", "Lucida Sans Unicode", "DejaVu Sans", sa
 let fontReady = false;
 
 function setup() {
-  createCanvas(500, 400);
+  createCanvas(500, 430);   // 下部30pxはプリセットボタン領域
   document.fonts.ready.then(() => { fontReady = true; });
 }
 
@@ -64,10 +64,31 @@ function draw() {
   drawVowelSymbols();          // 6. IPA母音記号
   drawCursor();                // 7. カーソル追従円
   drawAxisLabels();            // 8. 軸タイトル
+  drawButtonBackground();      // 9. ボタン領域背景（不可能領域のはみ出しを隠す）
+  drawPresetButtons();         // 10. プリセットボタン (4個)
 }
 ```
 
-## 3. 不可能領域の描画
+## 3. レイアウト定数
+
+```
+CANVAS_W = 500
+CANVAS_H = 430          // 従来の400 + ボタン領域30px
+MARGIN   = 50
+PLOT_TOP    = MARGIN     // 50
+PLOT_BOTTOM = 350        // 固定値（CANVAS_H - MARGIN ではない）
+PLOT_LEFT   = MARGIN     // 50
+PLOT_RIGHT  = CANVAS_W - MARGIN  // 450
+
+BTN_Y   = PLOT_BOTTOM + 25      // 375
+BTN_W   = 95
+BTN_H   = 30
+BTN_GAP = 10
+```
+
+チャート描画領域 (50–450 x 50–350) とボタン領域 (y=375) の間に 25px のマージンがある。ボタン4個は `(BTN_W * 4 + BTN_GAP * 3) = 410px` で、キャンバス幅500pxに対して水平中央揃え。
+
+## 4. 不可能領域の描画
 
 F1 > F2 の領域を対数スケール上で正しく描画:
 
@@ -88,7 +109,7 @@ function drawImpossibleRegion() {
 }
 ```
 
-## 4. グリッド線
+## 5. グリッド線
 
 ```javascript
 function drawGrid() {
@@ -109,15 +130,76 @@ function drawGrid() {
 }
 ```
 
-## 5. 高DPI対応
+## 6. プリセットボタン
+
+チャート下部に4つのプリセットボタンを描画する。
+
+```javascript
+const BTN_Y = PLOT_BOTTOM + 25;  // 375
+const BTN_W = 95;
+const BTN_H = 30;
+const BTN_GAP = 10;
+
+function drawButtonBackground() {
+  // 不可能領域がチャート下端を超えてはみ出す場合に備え、
+  // ボタン領域の背景を全体背景色で塗りつぶして隠す
+  fill(230); noStroke();
+  rect(0, PLOT_BOTTOM, CANVAS_W, CANVAS_H - PLOT_BOTTOM);
+}
+
+function drawPresetButtons() {
+  const totalW = BTN_W * 4 + BTN_GAP * 3;  // 410
+  const startX = (CANVAS_W - totalW) / 2;   // 水平中央揃え
+
+  for (let i = 0; i < presets.length; i++) {
+    const x = startX + i * (BTN_W + BTN_GAP);
+    if (i === activePreset) {
+      fill(60, 130, 200);   // アクティブ: 青
+    } else {
+      fill(180);             // 非アクティブ: グレー
+    }
+    rect(x, BTN_Y, BTN_W, BTN_H, 5);
+    fill(255);
+    text(presets[i].label, x + BTN_W / 2, BTN_Y + BTN_H / 2);
+  }
+}
+```
+
+### ボタンレイアウト詳細
+
+| 項目 | 値 |
+|------|----|
+| ボタンY座標 | 375 (PLOT_BOTTOM + 25) |
+| ボタンサイズ | 95 x 30 px |
+| ボタン間隔 | 10px |
+| アクティブ色 | rgb(60, 130, 200) — 青 |
+| 非アクティブ色 | rgb(180, 180, 180) — グレー |
+| 背景矩形 | y=350〜430、全体背景色(230)で塗り |
+
+背景矩形は不可能領域の `beginShape()` がプロット下端を超えてボタン領域に描画されるケースへの対策。
+
+## 7. 軸ラベル
+
+F1 軸ラベルのY座標は `(PLOT_TOP + PLOT_BOTTOM) / 2` で計算する（従来の `CANVAS_H / 2` から変更）。これにより、PLOT_BOTTOM が固定値350になってもラベルがチャート描画領域の垂直中央に正しく配置される。
+
+```javascript
+// F1軸ラベル（左側、縦書き）
+push();
+translate(15, (PLOT_TOP + PLOT_BOTTOM) / 2);  // (15, 200)
+rotate(-HALF_PI);
+text("F1 (Hz)", 0, 0);
+pop();
+```
+
+## 8. 高DPI対応
 
 p5.js はデフォルトで `window.devicePixelRatio` を検出し自動スケーリング。追加コード不要。
 
-- Retina (2x) では内部的に 1000x800 バッファ、CSS上は 500x400
+- Retina (2x) では内部的に 1000x860 バッファ、CSS上は 500x430
 - テキスト・図形・線すべて自動高解像度描画
 - パフォーマンスが問題なら `pixelDensity(1)` で明示的に1xに
 
-## 6. CSS
+## 9. CSS
 
 ```css
 html, body {

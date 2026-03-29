@@ -1,8 +1,20 @@
-# デプロイメント・配信方法調査
+# デプロイメント・配信方法
 
-## 推奨構成
+## 現在のデプロイ状況
 
-| 観点 | 推奨 | 理由 |
+| 項目 | 内容 |
+|------|------|
+| **公開URL** | https://ayutaz.github.io/vowel-playground/ |
+| **リポジトリ** | https://github.com/ayutaz/vowel-playground (public) |
+| **ホスティング** | GitHub Pages |
+| **デプロイ方法** | Deploy from branch (`main` ブランチ, ルート `/`) |
+| **HTTPS** | 自動発行済み (Let's Encrypt) |
+
+`main` ブランチにプッシュすると自動的にデプロイされる。
+
+## 構成方針
+
+| 観点 | 選定 | 理由 |
 |------|------|------|
 | **デプロイ先（メイン）** | **GitHub Pages** | 無料、ビルド不要、git pushで自動デプロイ |
 | **デプロイ先（サブ）** | p5.js Web Editor | コミュニティリーチ、フォーク促進 |
@@ -10,10 +22,10 @@
 | **PWA** | 初期段階では不要 | 需要が明確になってから |
 | **SEO** | 最低限のメタタグ | lang, description, OGP |
 
-## 1. GitHub Pages (推奨)
+## 1. GitHub Pages (採用済み)
 
-- Settings > Pages で `main` ブランチを指定するだけ
-- 公開URL: `https://<user>.github.io/<repo>/`
+- Settings > Pages > Deploy from a branch > `main` / `/ (root)` で設定済み
+- 公開URL: https://ayutaz.github.io/vowel-playground/
 - 制限: 1GB サイト、月100GB帯域、サーバーサイド処理不可
 - HTTPS 自動発行 (Let's Encrypt)
 
@@ -31,7 +43,7 @@
 <meta property="og:title" content="インタラクティブ母音フォルマント合成器" />
 <meta property="og:description" content="2D母音空間上でドラッグすると母音がリアルタイム合成されるWebアプリ" />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="https://yourdomain.com/ogp-image.png" />
+<meta property="og:image" content="https://ayutaz.github.io/vowel-playground/ogp-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -67,10 +79,12 @@
 - CSS `.sr-only` で visually-hidden な操作説明を配置
 - 将来: キーボードナビゲーション（矢印キーでカーソル移動）
 
-## 7. 推奨デプロイフロー
+## 7. デプロイフロー
 
-1. GitHub リポジトリ作成、ソースファイル + OGP画像をプッシュ
-2. GitHub Pages 有効化 (Settings > Pages > main)
-3. `index.html` に OGP メタタグ + SEO メタデータ追加
-4. p5.js Web Editor にもスケッチアップロード（コミュニティ向け）
-5. SNS シェアは GitHub Pages URL を使用
+以下の手順で構築済み:
+
+1. [x] GitHub リポジトリ作成 (https://github.com/ayutaz/vowel-playground, public)
+2. [x] GitHub Pages 有効化 (Settings > Pages > Deploy from branch > `main` / `/ (root)`)
+3. [ ] `index.html` に OGP メタタグ + SEO メタデータ追加
+4. [ ] p5.js Web Editor にもスケッチアップロード（コミュニティ向け）
+5. [ ] SNS シェアは GitHub Pages URL (https://ayutaz.github.io/vowel-playground/) を使用
