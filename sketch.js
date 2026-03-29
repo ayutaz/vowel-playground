@@ -31,12 +31,12 @@ let fontReady = false;
 const PRESETS = [
   { name: "通常",     f0: 131, scale: 1.0,  breath: 0,    vibDepth: 0, vibRate: 5.5,
     q: [0.2, 0.4, 0.8, 1.0], gain: [60, 60, 50, 40] },
-  { name: "女声",     f0: 220, scale: 1.15, breath: 0.1,  vibDepth: 2, vibRate: 5.5,
-    q: [0.25, 0.5, 0.85, 1.1], gain: [58, 60, 52, 42] },
-  { name: "可愛い声", f0: 280, scale: 1.3,  breath: 0.25, vibDepth: 4, vibRate: 5.0,
-    q: [0.4, 0.7, 1.0, 1.3], gain: [55, 60, 56, 48] },
-  { name: "アニメ声", f0: 330, scale: 1.5,  breath: 0.35, vibDepth: 5, vibRate: 5.0,
-    q: [0.5, 0.8, 1.2, 1.5], gain: [52, 58, 58, 52] },
+  { name: "女声",     f0: 220, scale: 1.15, breath: 0.15, vibDepth: 1.5, vibRate: 5.5,
+    q: [0.2, 0.4, 0.85, 1.0], gain: [58, 58, 55, 45] },
+  { name: "可愛い声", f0: 280, scale: 1.3,  breath: 0.2,  vibDepth: 3, vibRate: 5.0,
+    q: [0.2, 0.4, 0.9, 1.1], gain: [52, 55, 58, 52] },
+  { name: "アニメ声", f0: 330, scale: 1.5,  breath: 0.25, vibDepth: 4, vibRate: 5.0,
+    q: [0.2, 0.45, 1.0, 1.2], gain: [48, 52, 58, 55] },
 ];
 let currentPreset = 0;
 let noise;
@@ -174,8 +174,8 @@ function startSound() {
   }
   let p = PRESETS[currentPreset];
   osc.freq(p.f0);
-  osc.amp(AMP * (1 - p.breath), FADE_TIME);
-  noise.amp(AMP * p.breath * 6, FADE_TIME);
+  osc.amp(AMP, FADE_TIME);
+  noise.amp(AMP * p.breath * 0.5, FADE_TIME);
   playing = true;
 }
 
@@ -395,8 +395,8 @@ function applyPreset(idx) {
   let p = PRESETS[idx];
   osc.freq(p.f0);
   if (playing) {
-    osc.amp(AMP * (1 - p.breath), FADE_TIME);
-    noise.amp(AMP * p.breath * 6, FADE_TIME);
+    osc.amp(AMP, FADE_TIME);
+    noise.amp(AMP * p.breath * 0.5, FADE_TIME);
   }
 }
 
